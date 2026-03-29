@@ -19,13 +19,15 @@
 
 | 目录 | 内容 |
 |------|------|
-| `04~05.linux-exec-mcp` | Linux 命令执行 MCP 工具 |
+| `04.linux-exec-mcp` | Linux 命令执行 MCP 工具（SSE + Streamable HTTP） |
+| `05.linux-exec-mcp` | Linux 命令执行 MCP 工具（带鉴权版本） |
 | `06.ReAct` | ReAct 推理-行动智能体 |
 | `07.CodeAct` | CodeAct 代码执行智能体 |
 | `08.planmode` | Plan & Execute 规划模式 |
 | `09.reflection` | Reflection 反思机制 |
 | `10.human` | Human-in-the-Loop 人机协作 |
-| `11~12.websearch` | Web 搜索智能体 |
+| `11.websearch` | Web 搜索智能体（BochaSearch）|
+| `12.websearch` | Web 搜索智能体（SearXNG）|
 | `14.browser_use` | 浏览器使用智能体 |
 | `17.deep-thinking` | 深度思考（DeepSeek-R1）|
 | `18.deepresearch` | DeepResearch 智能体（含 Streamlit UI）|

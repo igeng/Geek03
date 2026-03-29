@@ -23,7 +23,7 @@
 | **操作系统** | Windows 10 (1903+) 或 Windows 11 | 需要支持 WSL2（可选但推荐）|
 | **内存** | 最低 8GB，推荐 16GB | LLM 工作流会占用较多内存 |
 | **磁盘空间** | 至少 10GB 可用空间 | Python 环境 + 依赖包 + 输出文件 |
-| **网络** | 需要访问 DeepSeek API（国内可用）| 部分 Web 搜索功能需要访问 Tavily |
+| **网络** | 需要访问 DeepSeek API（国内可用）| Web 搜索功能需要 SearXNG 服务或 BochaSearch API |
 
 ### 1.2 必装软件
 
@@ -38,8 +38,8 @@
 | API | 必要性 | 申请地址 | Key 格式示例 |
 |-----|--------|---------|------------|
 | **DeepSeek API Key** | **必须** | https://platform.deepseek.com | `sk-xxxxxxxxxxxxxxxxxxxxxxxx` |
-| **通义千问 API Key** | 可选（部分模块）| https://dashscope.aliyun.com | `sk-xxxxxxxxxxxxxxxx` |
-| **Tavily API Key** | 用于 Web 搜索模块 | https://app.tavily.com | `tvly-xxxxxxxxxxxxxxxx` |
+| **通义千问 API Key** | **必须**（多个模块使用）| https://dashscope.aliyun.com | `sk-xxxxxxxxxxxxxxxx` |
+| **BochaSearch API Key** | 用于 11.websearch 模块 | BochaAI 官网 | 按官方格式 |
 
 > ⚠️ **注意：** 请务必在开始之前先申请 DeepSeek API Key，申请通常需要手机号验证，几分钟内即可完成。
 
@@ -190,7 +190,7 @@ deactivate
 **5.1 安装核心依赖（所有模块通用）**
 
 ```cmd
-pip install langchain langchain-openai langchain-deepseek langgraph python-dotenv
+pip install langchain langchain-openai langchain-deepseek langgraph python-dotenv openai
 ```
 
 **预期输出：**
@@ -201,8 +201,10 @@ Successfully installed langchain-0.3.x langchain-openai-0.2.x ...
 **5.2 针对 DeepResearch 模块（18.deepresearch）**
 
 ```cmd
-pip install streamlit tavily-python langchain-mcp-adapters
+pip install streamlit langchain-community langchain-mcp-adapters
 ```
+
+> 💡 **初学者提示：** DeepResearch 模块使用 SearXNG 作为搜索引擎（通过 `langchain-community` 中的 `SearxSearchWrapper`），需要可用的 SearXNG 服务地址。不需要 Tavily API Key。
 
 **5.3 针对金融研报模块（21~26.financial）**
 
@@ -213,7 +215,7 @@ venv\Scripts\activate
 
 pip install langchain langchain-openai langchain-deepseek langgraph python-dotenv
 pip install akshare pandas python-docx pyyaml
-pip install langchain-mcp-adapters tavily-python
+pip install langchain-community langchain-mcp-adapters
 ```
 
 **5.4 针对记忆模块（19~20.mem0）**
@@ -258,7 +260,6 @@ notepad .env
 ```
 DEEPSEEK_API_KEY=sk-xxxxxxxxxxxxxxxxxxxxxxxx
 TONGYI_API_KEY=sk-xxxxxxxxxxxxxxxx
-TAVILY_API_KEY=tvly-xxxxxxxxxxxxxxxx
 ```
 
 > ⚠️ **注意事项：**
@@ -266,13 +267,21 @@ TAVILY_API_KEY=tvly-xxxxxxxxxxxxxxxx
 > - Key 值**不要加引号**（`sk-xxx`，不是 `"sk-xxx"`）
 > - 每行一个键值对
 > - 保存文件时确保编码为 **UTF-8**（记事本另存为时可以选择）
+> - `18.deepresearch` 需要 `DEEPSEEK_API_KEY` 和 `TONGYI_API_KEY`
 
 **6.3 金融模块的 .env 配置（21~26.financial）**
 
 ```
 DEEPSEEK_API_KEY=sk-xxxxxxxxxxxxxxxxxxxxxxxx
 TONGYI_API_KEY=sk-xxxxxxxxxxxxxxxx
-TAVILY_API_KEY=tvly-xxxxxxxxxxxxxxxx
+```
+
+**6.4 Web 搜索模块（11.websearch）额外的 .env 配置**
+
+```
+DEEPSEEK_API_KEY=sk-xxxxxxxxxxxxxxxxxxxxxxxx
+TONGYI_API_KEY=sk-xxxxxxxxxxxxxxxx
+BOCHA_API_KEY=你的BochaSearch_API_Key
 ```
 
 **6.4 验证 .env 配置**
@@ -316,11 +325,13 @@ streamlit run app.py
 cd C:\Users\你的用户名\Documents\Geek03\06.ReAct
 python -m venv venv
 venv\Scripts\activate
-pip install langchain langchain-deepseek langgraph python-dotenv
+pip install openai python-dotenv
 
-# 确保 .env 文件已配置
+# 确保 .env 文件已配置（需要 TONGYI_API_KEY）
 python react\agent.py
 ```
+
+> 💡 **初学者提示：** `06.ReAct/react/` 使用通义千问 (`qwen-max`)，需要在 `.env` 中配置 `TONGYI_API_KEY`。而 `06.ReAct/functioncalling/` 使用 DeepSeek，需要 `DEEPSEEK_API_KEY`。
 
 #### 7.3 运行金融研报 Agent（21~26.financial）
 
@@ -367,12 +378,14 @@ python workflow.py
 
 | 模块 | 额外需要安装的包 |
 |------|--------------|
-| `11~12.websearch` | `pip install tavily-python`（或配置 SearXNG）|
+| `06.ReAct` | `pip install openai`（使用原生 OpenAI SDK）|
+| `11.websearch` | 需要 `BOCHA_API_KEY`（BochaSearch API）|
+| `12.websearch` | `pip install langchain-community`（SearXNG 搜索引擎）|
 | `14.browser_use` | `pip install browser-use && playwright install chromium` |
-| `17.deep-thinking` | `pip install tavily-python` |
-| `18.deepresearch` | `pip install streamlit tavily-python langchain-mcp-adapters` |
+| `17.deep-thinking` | `pip install langchain-community`（SearXNG 搜索）|
+| `18.deepresearch` | `pip install streamlit langchain-community langchain-mcp-adapters` |
 | `19~20.mem0` | `pip install mem0ai` |
-| `21~26.financial` | `pip install akshare pandas python-docx pyyaml` |
+| `21~26.financial` | `pip install akshare pandas python-docx pyyaml langchain-community` |
 | `直播二.smolagents` | `pip install smolagents` |
 
 ---
@@ -622,7 +635,7 @@ cd C:\Users\你的用户名\Documents\Geek03\18.deepresearch
 venv\Scripts\activate
 
 # 确保安装了所有依赖
-pip install langchain langchain-openai langchain-deepseek langgraph streamlit tavily-python python-dotenv langchain-mcp-adapters
+pip install langchain langchain-openai langchain-deepseek langgraph streamlit python-dotenv langchain-community langchain-mcp-adapters
 
 # 启动 Streamlit
 streamlit run app.py
